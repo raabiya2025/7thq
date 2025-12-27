@@ -1,0 +1,53 @@
+pipeline {
+    agent any
+
+    tools {
+        // Use the JDK and Maven installed in Jenkins global config
+        jdk 'JDK8'
+        maven 'Maven3'
+    }
+
+    environment {
+        PROJECT_NAME = "jenkins-maven-demo"
+    }
+
+    stages {
+
+        stage('Checkout') {
+            steps {
+                // Clone the GitHub repo
+                git branch: 'main', url: 'https://github.com/your-username/jenkins-maven-demo.git'
+            }
+        }
+
+        stage('Build') {
+            steps {
+                // Clean and build jar using Maven
+                sh 'mvn clean package'
+            }
+        }
+
+        stage('Archive JAR') {
+            steps {
+                // Archive the generated JAR inside Jenkins
+                archiveArtifacts artifacts: "target/${PROJECT_NAME}-1.0.jar", fingerprint: true
+            }
+        }
+
+        stage('Test Run') {
+            steps {
+                // Optional: run the jar to verify
+                sh "java -jar target/${PROJECT_NAME}-1.0.jar"
+            }
+        }
+    }
+
+    post {
+        success {
+            echo 'Build and Jar generation successful!'
+        }
+        failure {
+            echo 'Build failed. Check logs.'
+        }
+    }
+}
